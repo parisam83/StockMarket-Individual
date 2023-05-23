@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33424.131
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StockMarket.Domain.Tests", "StockMarket.Domain.Tests\StockMarket.Domain.Tests.csproj", "{877B1B25-07D4-4A6A-A5A6-8B0EED631931}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StockMarket.Domain", "StockMarket.Domain\StockMarket.Domain.csproj", "{275B0D0F-0800-465C-BA44-1BD9E6E38856}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{877B1B25-07D4-4A6A-A5A6-8B0EED631931}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{877B1B25-07D4-4A6A-A5A6-8B0EED631931}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{877B1B25-07D4-4A6A-A5A6-8B0EED631931}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{877B1B25-07D4-4A6A-A5A6-8B0EED631931}.Release|Any CPU.Build.0 = Release|Any CPU
+		{275B0D0F-0800-465C-BA44-1BD9E6E38856}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{275B0D0F-0800-465C-BA44-1BD9E6E38856}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{275B0D0F-0800-465C-BA44-1BD9E6E38856}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{275B0D0F-0800-465C-BA44-1BD9E6E38856}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BCA66033-E054-46E8-97BC-52AC0B69DC2C}
+	EndGlobalSection
+EndGlobal
