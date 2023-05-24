@@ -311,6 +311,50 @@ namespace StockMarket.Domain.Tests
         }
 
         [Fact]
+        public void CancelOrder_Should_Cancel_Order_Test()
+        {
+            // Arrange
+            var sut = new StockMarketProcessor();
+            var orderId = sut.EnqueueOrder(tradeSide: TradeSide.Sell, quantity: 1, price: 1400);
 
+            // Act
+            sut.CancelOrder(orderId);
+
+            // Assert
+            sut.Orders.First().Should().BeEquivalentTo(new
+            {
+                isCanceled = true
+            });
+        }
+
+        [Fact]
+        public void CancelOrder_Should_Not_Process_Order_When_Peeked_MatchingOrder_Is_Canceled_Test()
+        {
+            // Arrange
+            var sut = new StockMarketProcessor();
+            var canceledOrderId = sut.EnqueueOrder(tradeSide: TradeSide.Sell, quantity: 1, price: 1400);
+            sut.CancelOrder(canceledOrderId);
+
+            // Act
+            var newOrderId = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1, price: 1400);
+
+            // Assert
+            Assert.Equal(2, sut.Orders.Count());
+            Assert.Empty(sut.Trades);
+            sut.Orders.First().Should().BeEquivalentTo(new
+            {
+                TradeSide = TradeSide.Sell,
+                Quantity = 1M,
+                Price = 1400M
+            });
+            sut.Orders.Last().Should().BeEquivalentTo(new
+            {
+                TradeSide = TradeSide.Buy,
+                Quantity = 1M,
+                Price = 1400M
+            });
+        }
+
+        
     }
 }

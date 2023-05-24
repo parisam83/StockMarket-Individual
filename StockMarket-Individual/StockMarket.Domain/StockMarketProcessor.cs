@@ -41,6 +41,11 @@ namespace StockMarket.Domain
             while (matchingOrders.Count > 0 && order.Quantity > 0 && comparePriceDeligate(order.Price, matchingOrders.Peek().Price))
             {
                 var peekedOrder = matchingOrders.Peek();
+                if (peekedOrder.IsCanceled)
+                {
+                    matchingOrders.Dequeue();
+                    continue;
+                }
                 makeTrade(order, peekedOrder);
                 if (peekedOrder.Quantity == 0) matchingOrders.Dequeue();
             }
@@ -68,6 +73,17 @@ namespace StockMarket.Domain
         {
             if (order1.TradeSide == TradeSide.Buy) return (BuyOrder: order1, SellOrder: order2);
             else return (BuyOrder: order2, SellOrder: order1);
+        }
+
+        public void CancelOrder(long orderId)
+        {
+            var order = orders.Single(order => order.Id == orderId);
+            order.Cancel();
+        }
+
+        public void CloseMarket()
+        {
+            throw new NotImplementedException();
         }
     }
 }
