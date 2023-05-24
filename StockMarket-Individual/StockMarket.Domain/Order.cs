@@ -1,6 +1,6 @@
 ﻿namespace StockMarket.Domain
 {
-    internal class Order
+    public class Order
     {
         private long id;
         private TradeSide tradeSide;
