@@ -1,9 +1,9 @@
-﻿using Microsoft.VisualBasic;
-using System.Diagnostics;
+﻿using StockMarket.Domain.States;
+using StockMarket.Domain.Comparer;
 
 namespace StockMarket.Domain
 {
-    public class StockMarketProcessor
+    public class StockMarketProcessor : IStockMarketProccessor
     {
         private long lastOrderId;
         private long lastTradeId;
@@ -11,6 +11,7 @@ namespace StockMarket.Domain
         private readonly List<Trade> trades;
         private readonly PriorityQueue<Order, Order> buyOrders;
         private readonly PriorityQueue<Order, Order> sellOrders;
+        public MarketState state;
 
         public IEnumerable<Order> Orders => orders;
         public IEnumerable<Trade> Trades => trades;
@@ -22,10 +23,11 @@ namespace StockMarket.Domain
             trades = new();
             buyOrders = new(new MaxComparer());
             sellOrders = new(new MinComparer());
+            state = new OpenState(this);
 
         }
 
-        public long EnqueueOrder(TradeSide tradeSide, decimal quantity, decimal price) 
+        internal long Enqueue(TradeSide tradeSide, decimal quantity, decimal price) 
         {
             Interlocked.Increment(ref lastOrderId);
             var order = new Order(lastOrderId, tradeSide, quantity, price);
@@ -34,6 +36,50 @@ namespace StockMarket.Domain
             if (tradeSide == TradeSide.Buy) matchOrder(order, buyOrders, sellOrders, (decimal price1, decimal price2) => price1 >= price2);
             else matchOrder(order, sellOrders, buyOrders, (decimal price1, decimal price2) => price1 <= price2);
             return order.Id;
+        }
+        public long EnqueueOrder(TradeSide tradeSide, decimal quantity, decimal price)
+        {
+            return state.EnqueueOrder(tradeSide, quantity, price);
+        }
+
+        internal long Cancel(long orderId) 
+        {
+            var order = orders.Single(order => order.Id == orderId);
+            order.Cancel();
+            return order.Id;
+        }
+        public long? CancelOrder(long orderId)
+        {
+            return state.CancelOrder(orderId);
+        }
+
+        internal void Close() 
+        {
+            state = new CloseState(this);
+        }
+        public void CloseMarket()
+        {
+            state.CloseMarket();
+        }
+
+        internal void Open()
+        {
+            state = new OpenState(this);
+        }
+        public void OpenMarket()
+        {
+            state.OpenMarket();
+        }
+
+        internal long Modify(long orderId, TradeSide tradeSide, decimal quantity, decimal price) 
+        {
+            this.Cancel(orderId);
+            return EnqueueOrder(tradeSide, quantity, price);
+            
+        }
+        public long ModifyOrder(long orderId, TradeSide tradeSide, decimal quantity, decimal price)
+        {
+            return state.ModifyOrder(orderId, tradeSide, quantity, price);
         }
 
         private void matchOrder(Order order, PriorityQueue<Order, Order> orders, PriorityQueue<Order, Order> matchingOrders, Func<decimal, decimal, bool> comparePriceDeligate) 
@@ -73,17 +119,6 @@ namespace StockMarket.Domain
         {
             if (order1.TradeSide == TradeSide.Buy) return (BuyOrder: order1, SellOrder: order2);
             else return (BuyOrder: order2, SellOrder: order1);
-        }
-
-        public void CancelOrder(long orderId)
-        {
-            var order = orders.Single(order => order.Id == orderId);
-            order.Cancel();
-        }
-
-        public void CloseMarket()
-        {
-            throw new NotImplementedException();
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace StockMarket.Domain
+﻿namespace StockMarket.Domain.Comparer
 {
     internal class MaxComparer : BaseComparer
     {

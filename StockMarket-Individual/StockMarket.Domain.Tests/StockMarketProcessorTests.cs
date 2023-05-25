@@ -1,4 +1,5 @@
 using FluentAssertions;
+using StockMarket.Domain.States;
 
 namespace StockMarket.Domain.Tests
 {
@@ -355,6 +356,188 @@ namespace StockMarket.Domain.Tests
             });
         }
 
-        
+        [Fact]
+        public void CloseMarket_Should_Close_StockMarket_Test()
+        {
+            // Arrange
+            var sut = new StockMarketProcessor();
+
+            // Act
+            sut.CloseMarket();
+
+            // Assert
+            Assert.Equal(sut.state.GetType(), typeof(CloseState));
+        }
+
+        [Fact]
+        public void EnqueueOrder_Should_Not_Work_When_StockMarket_Is_Closed_Test()
+        {
+            // Arrange
+            var sut = new StockMarketProcessor();
+            sut.CloseMarket();
+
+            // Act
+            void act() => sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1, price: 1500);
+
+            // Assert
+            Assert.Throws<NotImplementedException>(act);
+        }
+
+        [Fact]
+        public void CancelOrder_Should_Not_Work_When_StockMarket_Is_Closed_Test()
+        {
+            // Arrange
+            var sut = new StockMarketProcessor();
+            var orderId = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1, price: 1500);
+            sut.CloseMarket();
+
+            // Act
+            sut.CancelOrder(orderId);
+
+            // Assert
+            sut.Orders.First().Should().BeEquivalentTo(new
+            {
+                isCanceled = false
+            });
+        }
+
+        [Fact]
+        public void OpenMarket_Should_Open_StockMarket_When_StockMarket_Is_Already_Closed_Test()
+        {
+            // Arrange
+            var sut = new StockMarketProcessor();
+            sut.CloseMarket();
+
+            // Act
+            sut.OpenMarket();
+
+            // Assert
+            Assert.Equal(sut.state.GetType(), typeof(OpenState));
+        }
+
+        [Fact]
+        public void EnqueueOrder_Should_Work_When_StockMarket_Is_Opened_After_Being_Closed_Test()
+        {
+            // Arrange
+            var sut = new StockMarketProcessor();
+            sut.CloseMarket();
+            sut.OpenMarket();
+
+            // Act
+            var orderId = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1, price: 1500);
+
+            // Assert
+            Assert.Equal(1, sut.Orders.Count());
+            Assert.Equal(0, sut.Trades.Count());
+            sut.Orders.First().Should().BeEquivalentTo(new
+            {
+                TradeSide = TradeSide.Buy,
+                Quantity = 1M,
+                Price = 1500M
+            });
+        }
+
+        [Fact]
+        public void CancelOrder_Should_Work_When_StockMarket_Is_Opened_After_Being_Closed_Test()
+        {
+            // Arrange
+            var sut = new StockMarketProcessor();
+            var orderId = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1, price: 1500);
+            sut.CloseMarket();
+            sut.OpenMarket();
+
+            // Act
+            sut.CancelOrder(orderId);
+
+            // Assert
+            sut.Orders.First().Should().BeEquivalentTo(new
+            {
+                isCanceled = true
+            });
+        }
+
+        [Fact]
+        public void ModifyOrder_Test()
+        {
+            // buy order
+            // sell order : doesn't match with sell order
+            // buy order modifies so that the orders match
+
+            // Arrange
+            var sut = new StockMarketProcessor();
+            var buyOrderId1 = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1, price: 1500);
+            var sellOrderId = sut.EnqueueOrder(tradeSide: TradeSide.Sell, quantity: 1, price: 1700);
+
+            // Act
+            var buyOrderId2 = sut.ModifyOrder(buyOrderId1, TradeSide.Buy, 1, 2000);
+
+            // Assert
+            Assert.Equal(3, sut.Orders.Count());
+            Assert.Equal(1, sut.Trades.Count());
+            sut.Orders.First().Should().BeEquivalentTo(new
+            {
+                TradeSide = TradeSide.Buy,
+                Quantity = 1M,
+                Price = 1500M
+            });
+            sut.Orders.Last().Should().BeEquivalentTo(new
+            {
+                TradeSide = TradeSide.Buy,
+                Quantity = 0M,
+                Price = 2000M
+            });
+            sut.Trades.First().Should().BeEquivalentTo(new
+            {
+                BuyOrderId = buyOrderId2,
+                SellOrderId = sellOrderId,
+                Quantity = 1M,
+                Price = 1700M
+            });
+        }
+
+        [Fact]
+        public void ModifyOrder_Should_Not_Work_When_StockMarket_Is_Closed_Test()
+        {
+            // Arrange
+            var sut = new StockMarketProcessor();
+            var buyOrderId = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1, price: 1500);
+            sut.CloseMarket();
+
+            // Act
+            void act() => sut.ModifyOrder(buyOrderId, tradeSide: TradeSide.Buy, quantity: 1, price: 2000);
+
+            // Assert
+            Assert.Throws<NotImplementedException>(act);
+        }
+
+        [Fact]
+        public void ModifyOrder_Should_Work_When_StockMarket_Is_Opened_Test()
+        {
+            // Arrange
+            var sut = new StockMarketProcessor();
+            var buyOrderId1 = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1, price: 1500);
+            sut.CloseMarket();
+            sut.OpenMarket();
+
+            // Act
+            var buyOrderId2 = sut.ModifyOrder(buyOrderId1, TradeSide.Buy, 1, 2000);
+
+            // Assert
+            Assert.Equal(2, sut.Orders.Count());
+            sut.Orders.First().Should().BeEquivalentTo(new
+            {
+                Id = buyOrderId1,
+                TradeSide = TradeSide.Buy,
+                Quantity = 1M,
+                Price = 1500M
+            });
+            sut.Orders.Last().Should().BeEquivalentTo(new
+            {
+                Id = buyOrderId2,
+                TradeSide = TradeSide.Buy,
+                Quantity = 1M,
+                Price = 2000M
+            });
+        }
     }
 }
