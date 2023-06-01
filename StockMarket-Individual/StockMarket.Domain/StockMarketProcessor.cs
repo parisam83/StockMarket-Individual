@@ -23,8 +23,7 @@ namespace StockMarket.Domain
             trades = new();
             buyOrders = new(new MaxComparer());
             sellOrders = new(new MinComparer());
-            state = new OpenState(this);
-
+            state = new CloseState(this);
         }
 
         internal long Enqueue(TradeSide tradeSide, decimal quantity, decimal price) 

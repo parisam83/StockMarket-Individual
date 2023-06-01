@@ -5,11 +5,16 @@ namespace StockMarket.Domain.Tests
 {
     public class StockMarketProcessorTests
     {
+        private readonly StockMarketProcessor sut;
+        public StockMarketProcessorTests() 
+        {
+            sut = new();
+            sut.OpenMarket();
+        }
         [Fact]
         public void EnqueueOrder_Should_Process_SellOrder_When_BuyOrder_Is_Already_Enqueued_Test()
         {
             // Arrange
-            var sut = new StockMarketProcessor();
             var buyOrderId = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1, price: 1500);
 
             // Act
@@ -43,7 +48,6 @@ namespace StockMarket.Domain.Tests
         public void EnqueueOrder_Should_Process_BuyOrder_When_SellOrder_Is_Already_Enqueued_Test()
         {
             // Arrange
-            var sut = new StockMarketProcessor();
             var sellOrderId = sut.EnqueueOrder(tradeSide: TradeSide.Sell, quantity: 1, price: 1400);
 
             // Act
@@ -77,7 +81,6 @@ namespace StockMarket.Domain.Tests
         public void EnqueueOrder_Should_Process_SellOrder_When_Multiple_BuyOrders_Are_Already_Enqueued_Test()
         {
             // Arrage
-            var sut = new StockMarketProcessor();
             var buyOrderId1 = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1, price: 1400);
             var buyOrderId2 = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 2, price: 1500);
 
@@ -113,7 +116,6 @@ namespace StockMarket.Domain.Tests
         public void EnqueueOrder_Should_Process_BuyOrder_When_Multiple_SellOrders_Are_Already_Enqueued_Test()
         {
             // Arrage
-            var sut = new StockMarketProcessor();
             var sellOrderId1 = sut.EnqueueOrder(tradeSide: TradeSide.Sell, quantity: 1, price: 1400);
             var sellOrderId2 = sut.EnqueueOrder(tradeSide: TradeSide.Sell, quantity: 2, price: 1500);
 
@@ -141,7 +143,6 @@ namespace StockMarket.Domain.Tests
         public void EnqueueOrder_Should_Process_SellOrder_When_Some_BuyOrders_Are_Matched_Enqueued_Test() 
         {
             // Arrage
-            var sut = new StockMarketProcessor();
             var buyOrderId1 = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1, price: 1400);
             var buyOrderId2 = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 2, price: 1500);
 
@@ -183,7 +184,6 @@ namespace StockMarket.Domain.Tests
         public void EnqueueOrder_Should_Process_BuyOrder_When_Some_SellOrders_Are_Matched_Enqueued_Test()
         {
             // Arrage
-            var sut = new StockMarketProcessor();
             var sellOrderId1 = sut.EnqueueOrder(tradeSide: TradeSide.Sell, quantity: 1, price: 1400);
             var sellOrderId2 = sut.EnqueueOrder(tradeSide: TradeSide.Sell, quantity: 2, price: 1500);
 
@@ -225,7 +225,6 @@ namespace StockMarket.Domain.Tests
         public void EnqueueOrder_Should_Not_Process_BuyOrder_When_No_SellOrders_Are_Matched_Test()
         {
             // Arrage
-            var sut = new StockMarketProcessor();
             var sellOrderId1 = sut.EnqueueOrder(tradeSide: TradeSide.Sell, quantity: 1, price: 1400);
             var sellOrderId2 = sut.EnqueueOrder(tradeSide: TradeSide.Sell, quantity: 2, price: 1500);
 
@@ -253,7 +252,6 @@ namespace StockMarket.Domain.Tests
         public void EnqueueOrder_Should_Not_Proccess_SellOrder_When_No_BuyOrders_Are_Matched_Test()
         {
             // Arrage
-            var sut = new StockMarketProcessor();
             var buyOrderId1 = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1, price: 1400);
             var buyOrderId2 = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 2, price: 1500);
 
@@ -281,7 +279,6 @@ namespace StockMarket.Domain.Tests
         public void EnqueueOrder_Should_Proccess_BuyOrder_When_Demand_Is_More_Than_Supply_Test()
         {
             // Arrage
-            var sut = new StockMarketProcessor();
             var sellOrderId = sut.EnqueueOrder(tradeSide: TradeSide.Sell, quantity: 1, price: 1400);
 
             // Act
@@ -315,7 +312,6 @@ namespace StockMarket.Domain.Tests
         public void CancelOrder_Should_Cancel_Order_Test()
         {
             // Arrange
-            var sut = new StockMarketProcessor();
             var orderId = sut.EnqueueOrder(tradeSide: TradeSide.Sell, quantity: 1, price: 1400);
 
             // Act
@@ -332,7 +328,6 @@ namespace StockMarket.Domain.Tests
         public void CancelOrder_Should_Not_Process_Order_When_Peeked_MatchingOrder_Is_Canceled_Test()
         {
             // Arrange
-            var sut = new StockMarketProcessor();
             var canceledOrderId = sut.EnqueueOrder(tradeSide: TradeSide.Sell, quantity: 1, price: 1400);
             sut.CancelOrder(canceledOrderId);
 
@@ -360,7 +355,6 @@ namespace StockMarket.Domain.Tests
         public void CloseMarket_Should_Close_StockMarket_Test()
         {
             // Arrange
-            var sut = new StockMarketProcessor();
 
             // Act
             sut.CloseMarket();
@@ -373,7 +367,6 @@ namespace StockMarket.Domain.Tests
         public void EnqueueOrder_Should_Not_Work_When_StockMarket_Is_Closed_Test()
         {
             // Arrange
-            var sut = new StockMarketProcessor();
             sut.CloseMarket();
 
             // Act
@@ -387,7 +380,6 @@ namespace StockMarket.Domain.Tests
         public void CancelOrder_Should_Not_Work_When_StockMarket_Is_Closed_Test()
         {
             // Arrange
-            var sut = new StockMarketProcessor();
             var orderId = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1, price: 1500);
             sut.CloseMarket();
 
@@ -405,7 +397,6 @@ namespace StockMarket.Domain.Tests
         public void OpenMarket_Should_Open_StockMarket_When_StockMarket_Is_Already_Closed_Test()
         {
             // Arrange
-            var sut = new StockMarketProcessor();
             sut.CloseMarket();
 
             // Act
@@ -419,7 +410,6 @@ namespace StockMarket.Domain.Tests
         public void EnqueueOrder_Should_Work_When_StockMarket_Is_Opened_After_Being_Closed_Test()
         {
             // Arrange
-            var sut = new StockMarketProcessor();
             sut.CloseMarket();
             sut.OpenMarket();
 
@@ -441,7 +431,6 @@ namespace StockMarket.Domain.Tests
         public void CancelOrder_Should_Work_When_StockMarket_Is_Opened_After_Being_Closed_Test()
         {
             // Arrange
-            var sut = new StockMarketProcessor();
             var orderId = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1, price: 1500);
             sut.CloseMarket();
             sut.OpenMarket();
@@ -464,7 +453,6 @@ namespace StockMarket.Domain.Tests
             // buy order modifies so that the orders match
 
             // Arrange
-            var sut = new StockMarketProcessor();
             var buyOrderId1 = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1, price: 1500);
             var sellOrderId = sut.EnqueueOrder(tradeSide: TradeSide.Sell, quantity: 1, price: 1700);
 
@@ -499,7 +487,6 @@ namespace StockMarket.Domain.Tests
         public void ModifyOrder_Should_Not_Work_When_StockMarket_Is_Closed_Test()
         {
             // Arrange
-            var sut = new StockMarketProcessor();
             var buyOrderId = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1, price: 1500);
             sut.CloseMarket();
 
@@ -514,7 +501,6 @@ namespace StockMarket.Domain.Tests
         public void ModifyOrder_Should_Work_When_StockMarket_Is_Opened_Test()
         {
             // Arrange
-            var sut = new StockMarketProcessor();
             var buyOrderId1 = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1, price: 1500);
             sut.CloseMarket();
             sut.OpenMarket();
