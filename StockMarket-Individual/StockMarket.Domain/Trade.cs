@@ -1,26 +1,22 @@
-﻿namespace StockMarket.Domain
+﻿using System.Diagnostics;
+
+namespace StockMarket.Domain
 {
     public class Trade
     {
-        private long id;
-        private long buyOrderId;
-        private long sellOrderId;
-        private decimal quantity;
-        private decimal price;
+        public long Id { get; }
+        public long BuyOrderId { get; }
+        public long SellOrderId { get; }
+        public decimal Quantity { get; }
+        public decimal Price { get; }
 
         internal Trade(long id, long buyOrderId, long sellOrderId, decimal quantity, decimal price)
         {
-            this.id = id;
-            this.buyOrderId = buyOrderId;
-            this.sellOrderId = sellOrderId;
-            this.quantity = quantity;
-            this.price = price;
+            Id = id;
+            BuyOrderId = buyOrderId;
+            SellOrderId = sellOrderId;
+            Quantity = quantity;
+            Price = price;
         }
-
-        public long Id { get => id; }
-        public long BuyOrderId { get => buyOrderId; }
-        public long SellOrderId { get => sellOrderId; }
-        public decimal Quantity { get => quantity; }
-        public decimal Price { get => price; }
     }
 }

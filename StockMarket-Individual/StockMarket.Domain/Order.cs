@@ -1,36 +1,32 @@
-﻿namespace StockMarket.Domain
+﻿using System.Diagnostics;
+
+namespace StockMarket.Domain
 {
     public class Order
     {
-        private long id;
-        private TradeSide tradeSide;
-        private decimal quantity;
-        private decimal price;
-        private bool isCanceled;
+        public long Id { get; }
+        public decimal Price { get; }
+        public decimal Quantity { get; private set; }
+        public TradeSide TradeSide { get; }
+        public bool IsCanceled { get; private set; }
 
         internal Order(long id, TradeSide tradeSide, decimal quantity, decimal price)
         {
-            this.id = id;
-            this.tradeSide = tradeSide;
-            this.quantity = quantity;
-            this.price = price;
+            Id = id;
+            TradeSide = tradeSide;
+            Quantity = quantity;
+            Price = price;
             IsCanceled = false;
         }
 
         internal void DecreaseQuantity(decimal decreaseAmount)
         {
-            quantity -= decreaseAmount;
+            Quantity -= decreaseAmount;
         }
 
         internal void Cancel()
         {
             IsCanceled = true;
         }
-
-        public long Id { get => id; }
-        public decimal Price { get => price; }
-        public decimal Quantity { get => quantity; private set => quantity = value; }
-        public TradeSide TradeSide { get => tradeSide; }
-        public bool IsCanceled { get => isCanceled; set => isCanceled = value; }
     }
 }

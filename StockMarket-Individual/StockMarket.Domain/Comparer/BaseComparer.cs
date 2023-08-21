@@ -2,12 +2,12 @@
 {
     internal abstract class BaseComparer : IComparer<Order>
     {
-        public virtual int Compare(Order? x, Order? y)
+        public int Compare(Order? x, Order? y)
         {
             var result = SpecificCompare(x, y);
             if (result != 0) return result;
-            if (x.Id > y.Id) return -1;
-            else if (x.Id < y.Id) return 1;
+            if (x?.Id > y?.Id) return -1;
+            else if (x?.Id < y?.Id) return 1;
             return 0;
         }
 

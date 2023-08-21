@@ -16,10 +16,11 @@ namespace StockMarket.Domain
         public IEnumerable<Order> Orders => orders;
         public IEnumerable<Trade> Trades => trades;
 
-        public StockMarketProcessor(long lastOrderId = 0)
+        public StockMarketProcessor(long lastOrderId = 0, long lastTradeId = 0, List<Order>? orders = null)
         {
             this.lastOrderId = lastOrderId;
-            orders = new();
+            this.lastTradeId = lastTradeId;
+            this.orders = orders ?? new();  // if (orders == null) this.orders = new();
             trades = new();
             buyOrders = new(new MaxComparer());
             sellOrders = new(new MinComparer());
@@ -32,8 +33,8 @@ namespace StockMarket.Domain
             var order = new Order(lastOrderId, tradeSide, quantity, price);
             orders.Add(order);
 
-            if (tradeSide == TradeSide.Buy) matchOrder(order, buyOrders, sellOrders, (decimal price1, decimal price2) => price1 >= price2);
-            else matchOrder(order, sellOrders, buyOrders, (decimal price1, decimal price2) => price1 <= price2);
+            if (tradeSide == TradeSide.Buy) processOrder(order, buyOrders, sellOrders, (decimal price1, decimal price2) => price1 >= price2);
+            else processOrder(order, sellOrders, buyOrders, (decimal price1, decimal price2) => price1 <= price2);
             return order.Id;
         }
         public long EnqueueOrder(TradeSide tradeSide, decimal quantity, decimal price)
@@ -72,7 +73,7 @@ namespace StockMarket.Domain
 
         internal long Modify(long orderId, TradeSide tradeSide, decimal quantity, decimal price) 
         {
-            this.Cancel(orderId);
+            Cancel(orderId);
             return EnqueueOrder(tradeSide, quantity, price);
             
         }
@@ -81,7 +82,7 @@ namespace StockMarket.Domain
             return state.ModifyOrder(orderId, tradeSide, quantity, price);
         }
 
-        private void matchOrder(Order order, PriorityQueue<Order, Order> orders, PriorityQueue<Order, Order> matchingOrders, Func<decimal, decimal, bool> comparePriceDeligate) 
+        private void processOrder(Order order, PriorityQueue<Order, Order> orders, PriorityQueue<Order, Order> matchingOrders, Func<decimal, decimal, bool> comparePriceDeligate) 
         {
             while (matchingOrders.Count > 0 && order.Quantity > 0 && comparePriceDeligate(order.Price, matchingOrders.Peek().Price))
             {
@@ -100,9 +101,7 @@ namespace StockMarket.Domain
 
         private void makeTrade(Order order1, Order order2)
         {
-            var matchingOrders = FindOrders(order1, order2);
-            var buyOrder = matchingOrders.BuyOrder;
-            var sellOrder = matchingOrders.SellOrder;
+            (var buyOrder, var sellOrder) = FindOrders(order1, order2);
 
             decimal minQuantity = Math.Min(sellOrder.Quantity, buyOrder.Quantity);
 
