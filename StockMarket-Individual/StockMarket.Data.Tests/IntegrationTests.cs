@@ -4,28 +4,27 @@ using StockMarket.Domain;
 
 namespace StockMarket.Data.Tests
 {
-    public class IntegrationTests
+    public class IntegrationTests : IClassFixture<StockMarketDbContextFixture>
     {
-        private StockMarketProcessor stockMarketProcessor;
-        public IntegrationTests() 
+        private readonly StockMarketDbContext context;
+        private readonly StockMarketProcessor processor;
+        public IntegrationTests(StockMarketDbContextFixture fixture) 
         {
-            stockMarketProcessor = new();
-            stockMarketProcessor.OpenMarket();
+            context = fixture.Context;
+            processor = new(
+                lastOrderId: context.Orders.Max(o => (long?)o.Id) ?? 0,
+                lastTradeId: context.Trades.Max(t => (long?)t.Id) ?? 0);
+            processor.OpenMarket();
         }
-
         [Fact]
         public void DbContext_Should_Save_Orders_In_Database_Test()
         {
             // Arrange
-            var optionsBuilder = new DbContextOptionsBuilder<StockMarketDbContext>();
-            optionsBuilder.UseSqlServer("server=.\\sqlexpress;database=StockMarket;MultipleActiveResultSets=true;trusted_connection=true;encrypt=yes;trustservercertificate=yes;");
-            var context = new StockMarketDbContext(optionsBuilder.Options);
+            var buyOrderId = processor.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1, price: 1500);
+            var sellOrderId = processor.EnqueueOrder(tradeSide: TradeSide.Sell, quantity: 1, price: 1500);
 
-            var buyOrderId = stockMarketProcessor.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1, price: 1500);
-            var sellOrderId = stockMarketProcessor.EnqueueOrder(tradeSide: TradeSide.Sell, quantity: 2, price: 1400);
-
-            var buyOrder = stockMarketProcessor.Orders.Single(o => o.Id == buyOrderId);
-            var sellOrder = stockMarketProcessor.Orders.Single(o => o.Id == sellOrderId);
+            var buyOrder = processor.Orders.First(o => o.Id == buyOrderId);
+            var sellOrder = processor.Orders.First(o => o.Id == sellOrderId);
 
             // Act
             context.Orders.Add(buyOrder);
@@ -45,10 +44,48 @@ namespace StockMarket.Data.Tests
             {
                 Id = sellOrderId,
                 TradeSide = TradeSide.Sell,
-                Price = 1400M,
-                Quantity = 1M,
+                Price = 1500M,
+                Quantity = 0M,
                 IsCanceled = false
             });
+        }
+        [Fact]
+        public void DbContext_Should_Save_Trades_In_Database_Test()
+        {
+            // Arrange
+            var buyOrderId = processor.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1, price: 1500);
+            var sellOrderId = processor.EnqueueOrder(tradeSide: TradeSide.Sell, quantity: 1, price: 1500);
+
+            var buyOrder = processor.Orders.First(o => o.Id == buyOrderId);
+            var sellOrder = processor.Orders.First(o => o.Id == sellOrderId);
+            var trade = processor.Trades.First();
+
+
+            // Act
+            context.Orders.Add(buyOrder);
+            context.Orders.Add(sellOrder);
+            context.Trades.Add(trade);
+            context.SaveChanges();
+
+            // Assert
+            context.Trades.First(t => t.Id == trade.Id).Should().BeEquivalentTo(new
+            {
+                SellOrderId = sellOrderId,
+                BuyOrderId = buyOrderId,
+                Price = 1500M,
+                Quantity = 1M
+            });
+        }
+        [Fact]
+        public void DbContext_Should_Retrive_Orders_From_Database_Test()
+        {
+            // Arrange
+
+
+            // Act
+
+
+            // Assert
         }
     }
 }
