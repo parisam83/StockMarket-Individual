@@ -320,7 +320,7 @@ namespace StockMarket.Domain.Tests
             // Assert
             sut.Orders.First().Should().BeEquivalentTo(new
             {
-                isCanceled = true
+                IsCanceled = true
             });
         }
 
@@ -389,7 +389,7 @@ namespace StockMarket.Domain.Tests
             // Assert
             sut.Orders.First().Should().BeEquivalentTo(new
             {
-                isCanceled = false
+                IsCanceled = false
             });
         }
 
@@ -441,7 +441,7 @@ namespace StockMarket.Domain.Tests
             // Assert
             sut.Orders.First().Should().BeEquivalentTo(new
             {
-                isCanceled = true
+                IsCanceled = true
             });
         }
 
