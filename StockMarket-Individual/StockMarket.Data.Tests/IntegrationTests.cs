@@ -21,7 +21,7 @@ namespace StockMarket.Data.Tests
         }
 
         [Fact]
-        public async Task DbContext_Should_Save_Orders_In_Database_Test()
+        public async Task DbContext_Should_Save_Orders_In_Database_Test_Async()
         {
             // Arrange
             var processor = new StockMarketProcessor(
@@ -59,7 +59,7 @@ namespace StockMarket.Data.Tests
         }
 
         [Fact]
-        public async Task DbContext_Should_Save_Trades_In_Database_Test()
+        public async Task DbContext_Should_Save_Trades_In_Database_Test_Async()
         {
             // Arrange
             var processor = new StockMarketProcessor(
@@ -91,7 +91,7 @@ namespace StockMarket.Data.Tests
             });
         }
         [Fact]
-        public async Task DbContext_Should_Retrive_Orders_From_Database_Test()
+        public async Task DbContext_Should_Retrive_Orders_From_Database_Test_Async()
         {
             // Arrange
             var optionsBuilder = new DbContextOptionsBuilder<StockMarketDbContext>();
