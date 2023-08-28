@@ -1,6 +1,4 @@
-﻿using StockMarket.Domain.Commands;
-
-namespace StockMarket.Domain
+﻿namespace StockMarket.Domain.Commands
 {
     internal class ModifyCommand : BaseCommand
     {
