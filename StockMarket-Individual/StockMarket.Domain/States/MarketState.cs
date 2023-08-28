@@ -31,7 +31,7 @@
             throw new NotImplementedException();
         }
 
-        public virtual long ModifyOrder(long orderId, TradeSide tradeSide, decimal quantity, decimal price)
+        public virtual Task<long> ModifyOrderAsync(long orderId, TradeSide tradeSide, decimal quantity, decimal price)
         {
             throw new NotImplementedException();
         }

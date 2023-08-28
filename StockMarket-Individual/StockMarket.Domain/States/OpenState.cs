@@ -27,9 +27,9 @@ namespace StockMarket.Domain.States
             return await stockMarketProcessor.CancelAsync(orderId);
         }
 
-        public override long ModifyOrder(long orderId, TradeSide tradeSide, decimal quantity, decimal price)
+        public override async Task<long> ModifyOrderAsync(long orderId, TradeSide tradeSide, decimal quantity, decimal price)
         {
-            return stockMarketProcessor.Modify(orderId, tradeSide, quantity, price);
+            return await stockMarketProcessor.ModifyAsync(orderId, tradeSide, quantity, price);
         }
     }
 }

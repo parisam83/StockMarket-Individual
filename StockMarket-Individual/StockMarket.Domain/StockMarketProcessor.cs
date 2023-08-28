@@ -50,10 +50,9 @@ namespace StockMarket.Domain
         {
             return await state.CancelOrderAsync(orderId);
         }
-        // --------------------------------------------
-        public long ModifyOrder(long orderId, TradeSide tradeSide, decimal quantity, decimal price)
+        public async Task<long> ModifyOrderAsync(long orderId, TradeSide tradeSide, decimal quantity, decimal price)
         {
-            return state.ModifyOrder(orderId, tradeSide, quantity, price);
+            return await state.ModifyOrderAsync(orderId, tradeSide, quantity, price);
         }
         // --------------------------------------------
         internal void Open()
@@ -72,6 +71,10 @@ namespace StockMarket.Domain
         internal async Task<long> CancelAsync(long orderId)
         {
             return await queue.ExecuteAsync(new CancelCommand(this, orderId));
+        }
+        internal async Task<long> ModifyAsync(long orderId, TradeSide tradeSide, decimal quantity, decimal price)
+        {
+            return await queue.ExecuteAsync(new ModifyCommand(this, orderId, tradeSide, quantity, price));
         }
         // --------------------------------------------
         internal long Enqueue(TradeSide tradeSide, decimal quantity, decimal price) 

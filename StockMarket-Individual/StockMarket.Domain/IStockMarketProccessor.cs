@@ -9,6 +9,6 @@
         void OpenMarket();
         Task<long> EnqueueOrderAsync(TradeSide tradeSide, decimal quantity, decimal price);
         Task<long> CancelOrderAsync(long orderId);
-        long ModifyOrder(long orderId, TradeSide tradeSide, decimal quantity, decimal price);
+        Task<long> ModifyOrderAsync(long orderId, TradeSide tradeSide, decimal quantity, decimal price);
     }
 }

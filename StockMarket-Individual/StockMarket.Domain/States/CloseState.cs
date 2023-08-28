@@ -24,7 +24,7 @@
             throw new NotImplementedException();
         }
 
-        public override long ModifyOrder(long orderId, TradeSide tradeSide, decimal quantity, decimal price)
+        public override Task<long> ModifyOrderAsync(long orderId, TradeSide tradeSide, decimal quantity, decimal price)
         {
             throw new NotImplementedException();
         }
