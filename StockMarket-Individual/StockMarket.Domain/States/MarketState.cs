@@ -21,12 +21,12 @@
             throw new NotImplementedException();
         }
 
-        public virtual long EnqueueOrder(TradeSide tradeSide, decimal quantity, decimal price)
+        public virtual Task<long> EnqueueOrderAsync(TradeSide tradeSide, decimal quantity, decimal price)
         {
             throw new NotImplementedException();
         }
 
-        public virtual long? CancelOrder(long orderId)
+        public virtual Task<long> CancelOrderAsync(long orderId)
         {
             throw new NotImplementedException();
         }

@@ -14,15 +14,14 @@
             stockMarketProcessor.Open();
         }
 
-        public override long EnqueueOrder(TradeSide tradeSide, decimal quantity, decimal price)
+        public override Task<long> EnqueueOrderAsync(TradeSide tradeSide, decimal quantity, decimal price)
         {
             throw new NotImplementedException();
         }
 
-        public override long? CancelOrder(long orderId)
+        public override Task<long> CancelOrderAsync(long orderId)
         {
-            return null;
-            // throw new NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public override long ModifyOrder(long orderId, TradeSide tradeSide, decimal quantity, decimal price)

@@ -7,8 +7,8 @@
 
         void CloseMarket();
         void OpenMarket();
-        long EnqueueOrder(TradeSide tradeSide, decimal quantity, decimal price);
-        long? CancelOrder(long orderId);
+        Task<long> EnqueueOrderAsync(TradeSide tradeSide, decimal quantity, decimal price);
+        Task<long> CancelOrderAsync(long orderId);
         long ModifyOrder(long orderId, TradeSide tradeSide, decimal quantity, decimal price);
     }
 }

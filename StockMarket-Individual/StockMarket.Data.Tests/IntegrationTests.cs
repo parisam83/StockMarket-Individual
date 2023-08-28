@@ -28,8 +28,8 @@ namespace StockMarket.Data.Tests
                 lastOrderId: await context.Orders.MaxAsync(o => (long?)o.Id) ?? 0);
             processor.OpenMarket();
 
-            var buyOrderId = processor.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1M, price: 1500M);
-            var sellOrderId = processor.EnqueueOrder(tradeSide: TradeSide.Sell, quantity: 1M, price: 1500M);
+            var buyOrderId = await processor.EnqueueOrderAsync(tradeSide: TradeSide.Buy, quantity: 1M, price: 1500M);
+            var sellOrderId = await processor.EnqueueOrderAsync(tradeSide: TradeSide.Sell, quantity: 1M, price: 1500M);
 
             var buyOrder = processor.Orders.First(o => o.Id == buyOrderId);
             var sellOrder = processor.Orders.First(o => o.Id == sellOrderId);
@@ -67,8 +67,8 @@ namespace StockMarket.Data.Tests
                 lastTradeId: await context.Trades.MaxAsync(t => (long?)t.Id) ?? 0);
             processor.OpenMarket();
 
-            var buyOrderId = processor.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1M, price: 1500M);
-            var sellOrderId = processor.EnqueueOrder(tradeSide: TradeSide.Sell, quantity: 1M, price: 1500M);
+            var buyOrderId = await processor.EnqueueOrderAsync(tradeSide: TradeSide.Buy, quantity: 1M, price: 1500M);
+            var sellOrderId = await processor.EnqueueOrderAsync(tradeSide: TradeSide.Sell, quantity: 1M, price: 1500M);
 
             var buyOrder = processor.Orders.First(o => o.Id == buyOrderId);
             var sellOrder = processor.Orders.First(o => o.Id == sellOrderId);
@@ -106,7 +106,7 @@ namespace StockMarket.Data.Tests
                 lastTradeId: await context1.Trades.MaxAsync(t => (long?)t.Id) ?? 0);
             processor1.OpenMarket();
 
-            var buyOrderId = processor1.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1M, price: 1500M);
+            var buyOrderId = await processor1.EnqueueOrderAsync(tradeSide: TradeSide.Buy, quantity: 1M, price: 1500M);
             var buyOrder = processor1.Orders.First(o => o.Id == buyOrderId);
 
             await context1.Orders.AddAsync(buyOrder);
@@ -122,7 +122,7 @@ namespace StockMarket.Data.Tests
                 lastTradeId: await context2.Trades.MaxAsync(t => (long?)t.Id) ?? 0);
             processor2.OpenMarket();
 
-            var sellOrderId = processor2.EnqueueOrder(tradeSide: TradeSide.Sell, quantity: 1M, price: 1500M);
+            var sellOrderId = await processor2.EnqueueOrderAsync(tradeSide: TradeSide.Sell, quantity: 1M, price: 1500M);
             var sellOrder = processor2.Orders.First(o => o.Id == sellOrderId);
             var trade = processor2.Trades.First();
 

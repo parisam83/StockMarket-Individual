@@ -1,18 +1,19 @@
 ﻿using StockMarket.Domain.States;
 using StockMarket.Domain.Comparer;
-using System.Drawing;
+using StockMarket.Domain.Commands;
 
 namespace StockMarket.Domain
 {
     public class StockMarketProcessor : IStockMarketProccessor
     {
+        public MarketState state;
+        private StockMarketQueue queue;
         private long lastOrderId;
         private long lastTradeId;
         private readonly List<Order> orders;
         private readonly List<Trade> trades;
         private readonly PriorityQueue<Order, Order> buyOrders;
         private readonly PriorityQueue<Order, Order> sellOrders;
-        public MarketState state;
 
         public IEnumerable<Order> Orders => orders;
         public IEnumerable<Trade> Trades => trades;
@@ -20,6 +21,7 @@ namespace StockMarket.Domain
         public StockMarketProcessor(List<Order>? orders = null, long lastOrderId = 0, long lastTradeId = 0)
         {
             state = new CloseState(this);
+            queue = new();
             this.lastOrderId = lastOrderId;
             this.lastTradeId = lastTradeId;
             this.orders = orders ?? new();  // if (orders == null) this.orders = new();
@@ -30,57 +32,66 @@ namespace StockMarket.Domain
             foreach (var order in this.orders)
                 enqueueOrder(order);
         }
-
+        // --------------------------------------------
+        public void OpenMarket()
+        {
+            state.OpenMarket();
+        }
+        public void CloseMarket()
+        {
+            state.CloseMarket();
+        }
+        // --------------------------------------------
+        public async Task<long> EnqueueOrderAsync(TradeSide tradeSide, decimal quantity, decimal price)
+        {
+            return await state.EnqueueOrderAsync(tradeSide, quantity, price);
+        }
+        public async Task<long> CancelOrderAsync(long orderId)
+        {
+            return await state.CancelOrderAsync(orderId);
+        }
+        // --------------------------------------------
+        public long ModifyOrder(long orderId, TradeSide tradeSide, decimal quantity, decimal price)
+        {
+            return state.ModifyOrder(orderId, tradeSide, quantity, price);
+        }
+        // --------------------------------------------
+        internal void Open()
+        {
+            state = new OpenState(this);
+        }
+        internal void Close()
+        {
+            state = new CloseState(this);
+        }
+        // --------------------------------------------
+        internal async Task<long> EnqueueAsync(TradeSide tradeSide, decimal quantity, decimal price)
+        {
+            return await queue.ExecuteAsync(new EnqueueCommand(this, tradeSide, quantity, price));
+        }
+        internal async Task<long> CancelAsync(long orderId)
+        {
+            return await queue.ExecuteAsync(new CancelCommand(this, orderId));
+        }
+        // --------------------------------------------
         internal long Enqueue(TradeSide tradeSide, decimal quantity, decimal price) 
         {
             var order = makeOrder(tradeSide, quantity, price);
             enqueueOrder(order);
             return order.Id;
         }
-        public long EnqueueOrder(TradeSide tradeSide, decimal quantity, decimal price)
-        {
-            return state.EnqueueOrder(tradeSide, quantity, price);
-        }
-
         internal long Cancel(long orderId) 
         {
             var order = orders.Single(order => order.Id == orderId);
             order.Cancel();
             return order.Id;
         }
-        public long? CancelOrder(long orderId)
-        {
-            return state.CancelOrder(orderId);
-        }
-
-        internal void Close() 
-        {
-            state = new CloseState(this);
-        }
-        public void CloseMarket()
-        {
-            state.CloseMarket();
-        }
-
-        internal void Open()
-        {
-            state = new OpenState(this);
-        }
-        public void OpenMarket()
-        {
-            state.OpenMarket();
-        }
-
         internal long Modify(long orderId, TradeSide tradeSide, decimal quantity, decimal price) 
         {
             Cancel(orderId);
-            return EnqueueOrder(tradeSide, quantity, price);
-            
+            return Enqueue(tradeSide, quantity, price); 
         }
-        public long ModifyOrder(long orderId, TradeSide tradeSide, decimal quantity, decimal price)
-        {
-            return state.ModifyOrder(orderId, tradeSide, quantity, price);
-        }
+        // --------------------------------------------
         private Order makeOrder(TradeSide tradeSide, decimal quantity, decimal price)
         {
             Interlocked.Increment(ref lastOrderId);
@@ -102,6 +113,7 @@ namespace StockMarket.Domain
                     matchingOrders: buyOrders,
                     comparePriceDeligate: (decimal price1, decimal price2) => price1 <= price2);
         }
+
         private void processOrder(Order order, PriorityQueue<Order, Order> orders, PriorityQueue<Order, Order> matchingOrders, Func<decimal, decimal, bool> comparePriceDeligate) 
         {
             while (matchingOrders.Count > 0 && order.Quantity > 0 && comparePriceDeligate(order.Price, matchingOrders.Peek().Price))
@@ -138,5 +150,6 @@ namespace StockMarket.Domain
             if (order1.TradeSide == TradeSide.Buy) return (BuyOrder: order1, SellOrder: order2);
             else return (BuyOrder: order2, SellOrder: order1);
         }
+
     }
 }

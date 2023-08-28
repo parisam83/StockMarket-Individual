@@ -12,17 +12,17 @@ namespace StockMarket.Domain.Tests
             sut.OpenMarket();
         }
         [Fact]
-        public void EnqueueOrder_Should_Process_SellOrder_When_BuyOrder_Is_Already_Enqueued_Test()
+        public async Task EnqueueOrder_Should_Process_SellOrder_When_BuyOrder_Is_Already_Enqueued_Test()
         {
             // Arrange
-            var buyOrderId = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1, price: 1500);
+            var buyOrderId = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Buy, quantity: 1, price: 1500);
 
             // Act
-            var sellOrderId = sut.EnqueueOrder(tradeSide: TradeSide.Sell, quantity: 2, price: 1400);
+            var sellOrderId = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Sell, quantity: 2, price: 1400);
 
             // Assert
             Assert.Equal(2, sut.Orders.Count());
-            Assert.Equal(1, sut.Trades.Count());
+            Assert.Single(sut.Trades);
             sut.Orders.First().Should().BeEquivalentTo(new
             {
                 TradeSide = TradeSide.Buy,
@@ -45,17 +45,17 @@ namespace StockMarket.Domain.Tests
         }
 
         [Fact]
-        public void EnqueueOrder_Should_Process_BuyOrder_When_SellOrder_Is_Already_Enqueued_Test()
+        public async Task EnqueueOrder_Should_Process_BuyOrder_When_SellOrder_Is_Already_Enqueued_Test()
         {
             // Arrange
-            var sellOrderId = sut.EnqueueOrder(tradeSide: TradeSide.Sell, quantity: 1, price: 1400);
+            var sellOrderId = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Sell, quantity: 1, price: 1400);
 
             // Act
-            var buyOrderId = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1, price: 1500);
+            var buyOrderId = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Buy, quantity: 1, price: 1500);
 
             // Assert
             Assert.Equal(2, sut.Orders.Count());
-            Assert.Equal(1, sut.Trades.Count());
+            Assert.Single(sut.Trades);
             sut.Orders.First().Should().BeEquivalentTo(new
             {
                 TradeSide = TradeSide.Sell,
@@ -78,25 +78,24 @@ namespace StockMarket.Domain.Tests
         }
 
         [Fact]
-        public void EnqueueOrder_Should_Process_SellOrder_When_Multiple_BuyOrders_Are_Already_Enqueued_Test()
+        public async Task EnqueueOrder_Should_Process_SellOrder_When_Multiple_BuyOrders_Are_Already_Enqueued_Test()
         {
             // Arrage
-            var buyOrderId1 = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1, price: 1400);
-            var buyOrderId2 = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 2, price: 1500);
+            var buyOrderId1 = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Buy, quantity: 1, price: 1400);
+            var buyOrderId2 = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Buy, quantity: 2, price: 1500);
 
             // Act
-            var sellOrderId = sut.EnqueueOrder(tradeSide: TradeSide.Sell, quantity: 1, price: 1000);
+            var sellOrderId = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Sell, quantity: 1, price: 1000);
 
             // Assert
             Assert.Equal(3, sut.Orders.Count());
-            Assert.Equal(1, sut.Trades.Count());
+            Assert.Single(sut.Trades);
             sut.Orders.First().Should().BeEquivalentTo(new
             {
                 TradeSide = TradeSide.Buy,
                 Quantity = 1M,
                 Price = 1400M
             });
-            // Question: how to access the second element?
             sut.Orders.Last().Should().BeEquivalentTo(new
             {
                 TradeSide = TradeSide.Sell,
@@ -113,18 +112,18 @@ namespace StockMarket.Domain.Tests
         }
 
         [Fact]
-        public void EnqueueOrder_Should_Process_BuyOrder_When_Multiple_SellOrders_Are_Already_Enqueued_Test()
+        public async Task EnqueueOrder_Should_Process_BuyOrder_When_Multiple_SellOrders_Are_Already_Enqueued_Test()
         {
             // Arrage
-            var sellOrderId1 = sut.EnqueueOrder(tradeSide: TradeSide.Sell, quantity: 1, price: 1400);
-            var sellOrderId2 = sut.EnqueueOrder(tradeSide: TradeSide.Sell, quantity: 2, price: 1500);
+            var sellOrderId1 = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Sell, quantity: 1, price: 1400);
+            var sellOrderId2 = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Sell, quantity: 2, price: 1500);
 
             // Act
-            var buyOrderId = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1, price: 1000);
+            var buyOrderId = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Buy, quantity: 1, price: 1000);
 
             // Assert
             Assert.Equal(3, sut.Orders.Count());
-            Assert.Equal(0, sut.Trades.Count());
+            Assert.Empty(sut.Trades);
             sut.Orders.First().Should().BeEquivalentTo(new
             {
                 TradeSide = TradeSide.Sell,
@@ -140,14 +139,14 @@ namespace StockMarket.Domain.Tests
         }
 
         [Fact]
-        public void EnqueueOrder_Should_Process_SellOrder_When_Some_BuyOrders_Are_Matched_Enqueued_Test() 
+        public async Task EnqueueOrder_Should_Process_SellOrder_When_Some_BuyOrders_Are_Matched_Enqueued_Test() 
         {
             // Arrage
-            var buyOrderId1 = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1, price: 1400);
-            var buyOrderId2 = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 2, price: 1500);
+            var buyOrderId1 = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Buy, quantity: 1, price: 1400);
+            var buyOrderId2 = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Buy, quantity: 2, price: 1500);
 
             // Act
-            var sellOrderId = sut.EnqueueOrder(tradeSide: TradeSide.Sell, quantity: 8, price: 1000);
+            var sellOrderId = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Sell, quantity: 8, price: 1000);
 
             // Assert
             Assert.Equal(3, sut.Orders.Count());
@@ -181,14 +180,14 @@ namespace StockMarket.Domain.Tests
         }
 
         [Fact]
-        public void EnqueueOrder_Should_Process_BuyOrder_When_Some_SellOrders_Are_Matched_Enqueued_Test()
+        public async Task EnqueueOrder_Should_Process_BuyOrder_When_Some_SellOrders_Are_Matched_Enqueued_Test()
         {
             // Arrage
-            var sellOrderId1 = sut.EnqueueOrder(tradeSide: TradeSide.Sell, quantity: 1, price: 1400);
-            var sellOrderId2 = sut.EnqueueOrder(tradeSide: TradeSide.Sell, quantity: 2, price: 1500);
+            var sellOrderId1 = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Sell, quantity: 1, price: 1400);
+            var sellOrderId2 = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Sell, quantity: 2, price: 1500);
 
             // Act
-            var buyOrderId = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 8, price: 1700);
+            var buyOrderId = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Buy, quantity: 8, price: 1700);
 
             // Assert
             Assert.Equal(3, sut.Orders.Count());
@@ -222,18 +221,18 @@ namespace StockMarket.Domain.Tests
         }
 
         [Fact]
-        public void EnqueueOrder_Should_Not_Process_BuyOrder_When_No_SellOrders_Are_Matched_Test()
+        public async Task EnqueueOrder_Should_Not_Process_BuyOrder_When_No_SellOrders_Are_Matched_Test()
         {
             // Arrage
-            var sellOrderId1 = sut.EnqueueOrder(tradeSide: TradeSide.Sell, quantity: 1, price: 1400);
-            var sellOrderId2 = sut.EnqueueOrder(tradeSide: TradeSide.Sell, quantity: 2, price: 1500);
+            var sellOrderId1 = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Sell, quantity: 1, price: 1400);
+            var sellOrderId2 = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Sell, quantity: 2, price: 1500);
 
             // Act
-            var buyOrderId = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1, price: 1000);
+            var buyOrderId = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Buy, quantity: 1, price: 1000);
 
             // Assert
             Assert.Equal(3, sut.Orders.Count());
-            Assert.Equal(0, sut.Trades.Count());
+            Assert.Empty(sut.Trades);
             sut.Orders.First().Should().BeEquivalentTo(new
             {
                 TradeSide = TradeSide.Sell,
@@ -249,18 +248,18 @@ namespace StockMarket.Domain.Tests
         }
 
         [Fact]
-        public void EnqueueOrder_Should_Not_Proccess_SellOrder_When_No_BuyOrders_Are_Matched_Test()
+        public async Task EnqueueOrder_Should_Not_Proccess_SellOrder_When_No_BuyOrders_Are_Matched_Test()
         {
             // Arrage
-            var buyOrderId1 = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1, price: 1400);
-            var buyOrderId2 = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 2, price: 1500);
+            var buyOrderId1 = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Buy, quantity: 1, price: 1400);
+            var buyOrderId2 = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Buy, quantity: 2, price: 1500);
 
             // Act
-            var sellOrderId = sut.EnqueueOrder(tradeSide: TradeSide.Sell, quantity: 6, price: 2000);
+            var sellOrderId = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Sell, quantity: 6, price: 2000);
 
             // Assert
             Assert.Equal(3, sut.Orders.Count());
-            Assert.Equal(0, sut.Trades.Count());
+            Assert.Empty(sut.Trades);
             sut.Orders.First().Should().BeEquivalentTo(new
             {
                 TradeSide = TradeSide.Buy,
@@ -276,17 +275,17 @@ namespace StockMarket.Domain.Tests
         }
 
         [Fact]
-        public void EnqueueOrder_Should_Proccess_BuyOrder_When_Demand_Is_More_Than_Supply_Test()
+        public async Task EnqueueOrder_Should_Proccess_BuyOrder_When_Demand_Is_More_Than_Supply_Test()
         {
             // Arrage
-            var sellOrderId = sut.EnqueueOrder(tradeSide: TradeSide.Sell, quantity: 1, price: 1400);
+            var sellOrderId = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Sell, quantity: 1, price: 1400);
 
             // Act
-            var buyOrderId = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 3, price: 1400);
+            var buyOrderId = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Buy, quantity: 3, price: 1400);
 
             // Assert
             Assert.Equal(2, sut.Orders.Count());
-            Assert.Equal(1, sut.Trades.Count());
+            Assert.Single(sut.Trades);
             sut.Orders.First().Should().BeEquivalentTo(new
             {
                 TradeSide = TradeSide.Sell,
@@ -309,13 +308,13 @@ namespace StockMarket.Domain.Tests
         }
 
         [Fact]
-        public void CancelOrder_Should_Cancel_Order_Test()
+        public async Task CancelOrder_Should_Cancel_Order_Test()
         {
             // Arrange
-            var orderId = sut.EnqueueOrder(tradeSide: TradeSide.Sell, quantity: 1, price: 1400);
+            var orderId = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Sell, quantity: 1, price: 1400);
 
             // Act
-            sut.CancelOrder(orderId);
+            await sut.CancelOrderAsync(orderId);
 
             // Assert
             sut.Orders.First().Should().BeEquivalentTo(new
@@ -325,14 +324,14 @@ namespace StockMarket.Domain.Tests
         }
 
         [Fact]
-        public void CancelOrder_Should_Not_Process_Order_When_Peeked_MatchingOrder_Is_Canceled_Test()
+        public async Task CancelOrder_Should_Not_Process_Order_When_Peeked_MatchingOrder_Is_Canceled_Test()
         {
             // Arrange
-            var canceledOrderId = sut.EnqueueOrder(tradeSide: TradeSide.Sell, quantity: 1, price: 1400);
-            sut.CancelOrder(canceledOrderId);
+            var canceledOrderId = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Sell, quantity: 1, price: 1400);
+            await sut.CancelOrderAsync(canceledOrderId);
 
             // Act
-            var newOrderId = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1, price: 1400);
+            var newOrderId = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Buy, quantity: 1, price: 1400);
 
             // Assert
             Assert.Equal(2, sut.Orders.Count());
@@ -364,33 +363,30 @@ namespace StockMarket.Domain.Tests
         }
 
         [Fact]
-        public void EnqueueOrder_Should_Not_Work_When_StockMarket_Is_Closed_Test()
+        public async Task EnqueueOrder_Should_Not_Work_When_StockMarket_Is_Closed_Test()
         {
             // Arrange
             sut.CloseMarket();
 
             // Act
-            void act() => sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1, price: 1500);
+            async Task act() => await sut.EnqueueOrderAsync(tradeSide: TradeSide.Buy, quantity: 1, price: 1500);
 
             // Assert
-            Assert.Throws<NotImplementedException>(act);
+            await Assert.ThrowsAsync<NotImplementedException>(act);
         }
 
         [Fact]
-        public void CancelOrder_Should_Not_Work_When_StockMarket_Is_Closed_Test()
+        public async Task CancelOrder_Should_Not_Work_When_StockMarket_Is_Closed_Test()
         {
             // Arrange
-            var orderId = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1, price: 1500);
+            var orderId = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Buy, quantity: 1, price: 1500);
             sut.CloseMarket();
 
             // Act
-            sut.CancelOrder(orderId);
+            async Task act() => await sut.CancelOrderAsync(orderId);
 
             // Assert
-            sut.Orders.First().Should().BeEquivalentTo(new
-            {
-                IsCanceled = false
-            });
+            await Assert.ThrowsAsync<NotImplementedException>(act);
         }
 
         [Fact]
@@ -407,18 +403,18 @@ namespace StockMarket.Domain.Tests
         }
 
         [Fact]
-        public void EnqueueOrder_Should_Work_When_StockMarket_Is_Opened_After_Being_Closed_Test()
+        public async Task EnqueueOrder_Should_Work_When_StockMarket_Is_Opened_After_Being_Closed_Test()
         {
             // Arrange
             sut.CloseMarket();
             sut.OpenMarket();
 
             // Act
-            var orderId = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1, price: 1500);
+            var orderId = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Buy, quantity: 1, price: 1500);
 
             // Assert
-            Assert.Equal(1, sut.Orders.Count());
-            Assert.Equal(0, sut.Trades.Count());
+            Assert.Single(sut.Orders);
+            Assert.Empty(sut.Trades);
             sut.Orders.First().Should().BeEquivalentTo(new
             {
                 TradeSide = TradeSide.Buy,
@@ -428,15 +424,15 @@ namespace StockMarket.Domain.Tests
         }
 
         [Fact]
-        public void CancelOrder_Should_Work_When_StockMarket_Is_Opened_After_Being_Closed_Test()
+        public async Task CancelOrder_Should_Work_When_StockMarket_Is_Opened_After_Being_Closed_Test()
         {
             // Arrange
-            var orderId = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1, price: 1500);
+            var orderId = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Buy, quantity: 1, price: 1500);
             sut.CloseMarket();
             sut.OpenMarket();
 
             // Act
-            sut.CancelOrder(orderId);
+            await sut.CancelOrderAsync(orderId);
 
             // Assert
             sut.Orders.First().Should().BeEquivalentTo(new
@@ -446,22 +442,22 @@ namespace StockMarket.Domain.Tests
         }
 
         [Fact]
-        public void ModifyOrder_Test()
+        public async Task ModifyOrder_Test()
         {
             // buy order
             // sell order : doesn't match with sell order
             // buy order modifies so that the orders match
 
             // Arrange
-            var buyOrderId1 = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1, price: 1500);
-            var sellOrderId = sut.EnqueueOrder(tradeSide: TradeSide.Sell, quantity: 1, price: 1700);
+            var buyOrderId1 = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Buy, quantity: 1, price: 1500);
+            var sellOrderId = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Sell, quantity: 1, price: 1700);
 
             // Act
             var buyOrderId2 = sut.ModifyOrder(buyOrderId1, TradeSide.Buy, 1, 2000);
 
             // Assert
             Assert.Equal(3, sut.Orders.Count());
-            Assert.Equal(1, sut.Trades.Count());
+            Assert.Single(sut.Trades);
             sut.Orders.First().Should().BeEquivalentTo(new
             {
                 TradeSide = TradeSide.Buy,
@@ -484,10 +480,10 @@ namespace StockMarket.Domain.Tests
         }
 
         [Fact]
-        public void ModifyOrder_Should_Not_Work_When_StockMarket_Is_Closed_Test()
+        public async Task ModifyOrder_Should_Not_Work_When_StockMarket_Is_Closed_Test()
         {
             // Arrange
-            var buyOrderId = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1, price: 1500);
+            var buyOrderId = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Buy, quantity: 1, price: 1500);
             sut.CloseMarket();
 
             // Act
@@ -498,10 +494,10 @@ namespace StockMarket.Domain.Tests
         }
 
         [Fact]
-        public void ModifyOrder_Should_Work_When_StockMarket_Is_Opened_Test()
+        public async Task ModifyOrder_Should_Work_When_StockMarket_Is_Opened_Test()
         {
             // Arrange
-            var buyOrderId1 = sut.EnqueueOrder(tradeSide: TradeSide.Buy, quantity: 1, price: 1500);
+            var buyOrderId1 = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Buy, quantity: 1, price: 1500);
             sut.CloseMarket();
             sut.OpenMarket();
 
@@ -524,6 +520,37 @@ namespace StockMarket.Domain.Tests
                 Quantity = 1M,
                 Price = 2000M
             });
+        }
+
+        [Fact]
+        public async Task EnqueueOrder_Should_Process_Concurrent_Orders_Test_Async()
+        {
+            // Arrange
+            sut.OpenMarket();
+            var tasks = new List<Task>();
+
+            // Act
+            for (int i = 0; i < 5; i++)
+            {
+                tasks.Add(Task.Run(async () =>
+                {
+                    await sut.EnqueueOrderAsync(tradeSide: TradeSide.Buy, quantity: 1M, price: 1500M);
+                }));
+            }
+
+            for (int i = 0; i < 5; i++)
+            {
+                tasks.Add(Task.Run(async () =>
+                {
+                    await sut.EnqueueOrderAsync(tradeSide: TradeSide.Sell, quantity: 1M, price: 1500M);
+                }));
+            }
+
+            await Task.WhenAll(tasks);
+
+            // Assert
+            Assert.Equal(10, sut.Orders.Count());
+            Assert.Equal(5, sut.Trades.Count());
         }
     }
 }
