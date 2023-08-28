@@ -453,7 +453,7 @@ namespace StockMarket.Domain.Tests
             var sellOrderId = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Sell, quantity: 1, price: 1700);
 
             // Act
-            var buyOrderId2 = sut.ModifyOrder(buyOrderId1, TradeSide.Buy, 1, 2000);
+            var buyOrderId2 = await sut.ModifyOrderAsync(buyOrderId1, TradeSide.Buy, 1, 2000);
 
             // Assert
             Assert.Equal(3, sut.Orders.Count());
@@ -487,10 +487,10 @@ namespace StockMarket.Domain.Tests
             sut.CloseMarket();
 
             // Act
-            void act() => sut.ModifyOrder(buyOrderId, tradeSide: TradeSide.Buy, quantity: 1, price: 2000);
+            async Task act() => await sut.ModifyOrderAsync(buyOrderId, tradeSide: TradeSide.Buy, quantity: 1, price: 2000);
 
             // Assert
-            Assert.Throws<NotImplementedException>(act);
+            await Assert.ThrowsAsync<NotImplementedException>(act);
         }
 
         [Fact]
@@ -502,7 +502,7 @@ namespace StockMarket.Domain.Tests
             sut.OpenMarket();
 
             // Act
-            var buyOrderId2 = sut.ModifyOrder(buyOrderId1, TradeSide.Buy, 1, 2000);
+            var buyOrderId2 = await sut.ModifyOrderAsync(buyOrderId1, TradeSide.Buy, 1, 2000);
 
             // Assert
             Assert.Equal(2, sut.Orders.Count());
@@ -551,6 +551,63 @@ namespace StockMarket.Domain.Tests
             // Assert
             Assert.Equal(10, sut.Orders.Count());
             Assert.Equal(5, sut.Trades.Count());
+        }
+
+        [Fact]
+        public async Task CancelOrder_Should_Process_Concurrent_Orders_Test_Async()
+        {
+            // Arrange
+            sut.OpenMarket();
+            var tasks = new List<Task>();
+            var orderIds = new List<long>();
+
+            // Act
+            for (int i = 0; i < 5; i++)
+            {
+                var orderId = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Buy, quantity: 1M, price: 1500M);
+                orderIds.Add(orderId);
+            }
+
+            foreach (var orderId in orderIds)
+            {
+                tasks.Add(Task.Run(async () =>
+                {
+                    await sut.CancelOrderAsync(orderId);
+                }));
+            }
+            await Task.WhenAll(tasks);
+
+            // Assert
+            Assert.Equal(5, sut.Orders.Count(o => o.IsCanceled));
+        }
+
+        [Fact]
+        public async Task ModifyOrder_Should_Process_Concurrent_Orders_Test_Async()
+        {
+            // Arrange
+            sut.OpenMarket();
+            var tasks = new List<Task>();
+            var orderIds = new List<long>();
+
+            // Act
+            for (int i = 0; i < 5; i++)
+            {
+                var orderId = await sut.EnqueueOrderAsync(tradeSide: TradeSide.Buy, quantity: 1M, price: 1500M);
+                orderIds.Add(orderId);
+            }
+
+            foreach (var orderId in orderIds)
+            {
+                tasks.Add(Task.Run(async () =>
+                {
+                    await sut.ModifyOrderAsync(orderId: orderId, tradeSide: TradeSide.Buy, quantity: 2M, price: 2000M);
+                }));
+            }
+            await Task.WhenAll(tasks);
+
+            // Assert
+            Assert.Equal(5, sut.Orders.Count(o => o.IsCanceled && o.Price == 1500M && o.Quantity == 1M));
+            Assert.Equal(5, sut.Orders.Count(o => !o.IsCanceled && o.Price == 2000M && o.Quantity == 2M));
         }
     }
 }
